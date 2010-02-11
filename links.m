@@ -41,6 +41,4 @@ function t = buildMatrix(directory)
   %%% normalize by the column sum
   t = bsxfun(@rdivide,b,sum(b));
 end
-
-buildMatrix('test')
-
+buildMatrix(argv(){1})
