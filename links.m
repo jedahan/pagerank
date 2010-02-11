@@ -1,46 +1,46 @@
-% FIXME 'warning: range error for conversion to character value'
+function t = buildMatrix(pagelist)
+    % buildMatrix  Creates the normalized probability matrix
 
-% make a cellarray of all the pages
-allpages = fopen('allpages.txt');
-pages{1} = fgetl(allpages);
-while ~feof(allpages)
-  pages{end+1} = fgetl(allpages);
-end
-fclose(allpages);
+    %%% create cellarray of indexed pages
+    pages = textread(pagelist,'%s');
 
-% initialize matrix
-b = zeros(length(pages), length(pages));
+    %%% initialize empty matrix
+    b = zeros(length(pages), length(pages));
 
-% for each page,
-for page_num=1:length(pages)
-  page = pages(page_num){1,1};
+    %%% for each page,
+    for page_num=1:length(pages)    % FIXME: can this be
+      page = pages(page_num){1,1};  % for page in pages
+      %%% capture all the hrefs 
+      fid = fopen(strrep(page,"http://",""));
+      % FIXME range error conversion is here
+      hrefs = regexp(fscanf(fid,'%s'),'ahref=["'']([^"'']+html)["'']','tokens');
+      fclose(fid);
+      %%% for each href
+      for href_num=1:length(hrefs)
+        href = hrefs(href_num){1,1}{1,1};
+        %%% replace first character in relative path with full path
+        href = regexprep(href,'^[/\w]',page(1:findstr(page,'/')(end)),'once');
+        %%% replace any number of ../s with the full path
+        if regexpi(href,'^\.\./')
+            ups = strfind(href,'../');
+            downs = strfind(page,'/');
+            href = strcat(page(1:downs(end-length(ups))), href(ups(end)+3:end));
+        end
 
-  % capture all the hrefs.
-  webpage = fscanf(fopen(strrep(page,"http://","")) ,'%s',Inf);
-  hrefs = regexp(webpage, 'ahref=["'']([^"'']+html)["'']', 'tokens');
+        %%% prepend http if its not found
+        regexprep(href, '^[^http\:]','http://$0');
 
-  % for each href
-  for href_num=1:length(hrefs)
-    href = hrefs(href_num){1,1}{1,1};
-
-    % replace first character in relative path with full path
-    href = regexprep(href,'^[/\w]',page(1:findstr(page,'/')(end)),'once');
-
-    % replace any number of ../s with the full path
-    if regexpi(href,'^\.\./')
-        ups = strfind(href,'../');
-        downs = strfind(page,'/');
-        href = strcat(page(1:downs(end-length(ups))), href(ups(end)+3:end));
+        %%% mark the appropriate entry in b
+        b(find(strcmp(pages,page)), find(strcmp(pages,href))) = 1;
+      end
     end
 
-    % prepend http if its not found,
-    if isempty(strfind(href, 'http://'))
-      href = strcat('http://',href);
-    end
+  %%% replace any all 0 column with all 1s
+  b(:,find(all(~b)))=1;
 
-    % mark the appropriate entry in b
-    b(find(strcmp(pages,page)), find(strcmp(pages,href))) = 1;
-  end
+  %%% normalize by the column sum
+  t = bsxfun(@rdivide,b,sum(b));
 end
 
-b
+buildMatrix('allpages.txt')
+
