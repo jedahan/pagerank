@@ -1,17 +1,17 @@
-function t = buildMatrix(directory)
+function B = BuildMatrix(basedir,filename)
     % buildMatrix  Creates the normalized probability matrix
 
     %%% create cellarray of indexed pages
-    pages = textread([directory '/allpages.txt'],'%s');
+    pages = textread(filename, '%s');
 
     %%% initialize empty matrix
-    b = zeros(length(pages), length(pages));
+    B = zeros(length(pages), length(pages));
 
     %%% for each page,
     for page_num=1:length(pages)
       page = pages(page_num){1,1};
       %%% capture all the hrefs 
-      fid = fopen(strrep(page,"http://",""));
+      fid = fopen(strrep(page,'http://',''));
       %%% NOTE utf8 pages complain about range error conversion here
       hrefs=regexp(fscanf(fid,'%s'),'ahref=["'']([^"'']+html)["'']','tokens');
       fclose(fid);
@@ -30,15 +30,40 @@ function t = buildMatrix(directory)
         %%% prepend http if its not found
         regexprep(href, '^[^http\:]','http://$0');
 
-        %%% mark the appropriate entry in b
-        b(find(strcmp(pages,href)), find(strcmp(pages,page))) = 1;
+        %%% mark the appropriate entry in B
+        B(find(strcmp(pages,href)), find(strcmp(pages,page))) = 1;
       end
     end
 
   %%% replace any all 0 column with all 1s
-  b(:,find(all(~b)))=1;
+  B(:,find(all(~B)))=1;
 
   %%% normalize by the column sum
-  t = bsxfun(@rdivide,b,sum(b));
+  B = bsxfun(@rdivide,B,sum(B));
 end
-buildMatrix(argv(){1})
+
+function w = PageRank(B,d)
+    % PageRank  Determines the rank of each page damping
+
+    w{1} = ones(length(B),1)./length(B);
+    n = 2;
+    w{n} = (1-d)*w{1} + d*(B*w{n-1});
+    while w{n}~=w{n-1}
+        n = n+1;
+        w{n} = (1-d)*w{1} + d*(B*w{n-1});
+    end
+    w = w{end};
+end
+
+%%% Process CLI arguments
+if length(argv())~=3
+    disp "Usage: matlab links.m <basedir> <filename> <damping factor>"
+    exit
+end
+basedir = argv(){1};
+filename = argv(){2};
+damping = argv(){3};
+
+%%% Save results
+p = PageRank( BuildMatrix(basedir, filename), str2num(damping) )
+save ( 'results.mat', 'p' )
