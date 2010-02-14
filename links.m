@@ -71,4 +71,4 @@ damping = argv(){3};
 results = PageRank( BuildMatrix(basedir, filename), str2num(damping) );
 save ( 'results.mat', 'results' );
 [ra,in] = sort(results,'descend');
-fprintf(fopen('rankedresults.html','w'),'%s\n',textread(filename,'%s')(in){:});
+fprintf(fopen('rankedresults.html','w'),'%s\n<br \\>\n',textread(filename,'%s')(in){:});
