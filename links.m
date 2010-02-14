@@ -13,8 +13,8 @@ function B = BuildMatrix(basedir,filename)
     %%% for each page,
     for page_num=1:length(pages)
       page = pages(page_num){1,1};
-      %%% capture all the hrefs 
-      fid = fopen(strrep(page,'http://',''));
+      %%% capture all the hrefs
+      fid = fopen([basedir page(findstr(page,'/')(3):end)])
       %%% NOTE utf8 pages complain about range error conversion here
       hrefs=regexp(fscanf(fid,'%s'),'ahref=["'']([^"'']+html)["'']','tokens');
       fclose(fid);
