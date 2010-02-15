@@ -14,7 +14,7 @@ function B = BuildMatrix(basedir,filename)
     for page_num=1:length(pages)
       page = pages(page_num){1,1};
       %%% capture all the hrefs
-      fid = fopen([basedir page(findstr(page,'/')(3):end)])
+      fid = fopen([basedir page(strfind(page,'/')(3):end)])
       %%% NOTE utf8 pages complain about range error conversion here
       hrefs=regexp(fscanf(fid,'%s'),'ahref=["'']([^"'']+html)["'']','tokens');
       fclose(fid);
@@ -22,9 +22,9 @@ function B = BuildMatrix(basedir,filename)
       for href_num=1:length(hrefs)
         href = hrefs{1,href_num}{1,1};
         %%% replace first character in relative path with full path
-        href = regexprep(href,'^[/\w]',[page(1:findstr(page,'/')(end)) '$0'],'once');
+        href = regexprep(href,'^[/\w]',[page(1:strfind(page,'/')(end)) '$0'],'once');
         %%% replace any number of ../s with the full path
-        if regexpi(href,'^\.\./')
+        if regexp(href,'^\.\./')
             ups = strfind(href,'../');
             downs = strfind(page,'/');
             href = strcat(page(1:downs(end-length(ups))), href(ups(end)+3:end));
