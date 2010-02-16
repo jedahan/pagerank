@@ -1,4 +1,4 @@
-http://test/a.html
+http://test/a/index.html
 http://test/b.html
 http://test/c.html
 http://test/d.html
