@@ -14,15 +14,17 @@ function B = BuildMatrix(basedir,filename)
     for page_num=1:length(pages)
       page = pages(page_num){1,1};
       %%% capture all the hrefs
-      fid = fopen([basedir page(strfind(page,'/')(3):end)])
+      fid = fopen([basedir page(strfind(page,'/')(3):end)]);
       %%% NOTE utf8 pages complain about range error conversion here
-      hrefs=regexp(fscanf(fid,'%s'),'ahref=["'']([^"'']+html)["'']','tokens');
+      hrefs = regexp(fscanf(fid,'%s'),'ahref=["'']([^"'']+)["'']','tokens');
       fclose(fid);
       %%% for each href
       for href_num=1:length(hrefs)
         href = hrefs{1,href_num}{1,1};
+
         %%% replace first character in relative path with full path
         href = regexprep(href,'^[/\w]',[page(1:strfind(page,'/')(end)) '$0'],'once');
+
         %%% replace any number of ../s with the full path
         if regexp(href,'^\.\./')
             ups = strfind(href,'../');
@@ -31,7 +33,10 @@ function B = BuildMatrix(basedir,filename)
         end
 
         %%% prepend http if its not found
-        regexprep(href, '^[^http\:]','http://$0');
+        href = regexprep(href, '^[^http\:]','http://$0');
+
+        %%% append index.html if it ends in '/'
+        href = regexprep(href, '/$','$0index.html');
 
         %%% mark the appropriate entry in B
         B(find(strcmp(pages,href)), find(strcmp(pages,page))) = 1;
