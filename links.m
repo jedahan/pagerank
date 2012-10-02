@@ -48,6 +48,8 @@ function B = BuildMatrix(basedir,filename)
 
   %%% normalize by the column sum
   B = bsxfun(@rdivide,B,sum(B));
+
+  pages
 end
 
 function w = PageRank(B,d)
@@ -73,7 +75,8 @@ filename = argv(){2};
 damping = argv(){3};
 
 %%% Save results
-results = PageRank( BuildMatrix(basedir, filename), str2num(damping) );
+b = BuildMatrix(basedir, filename);
+results = PageRank( b, str2num(damping) );
 save ( 'results.mat', 'results' );
 [ra,in] = sort(results,'descend');
 fprintf(fopen('rankedresults.html','w'),'%s\n<br \\>\n',textread(filename,'%s')(in){:});
