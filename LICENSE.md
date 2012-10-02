@@ -1,9 +1,1 @@
-Copyright 2010 Jonathan Dahan <jedahan@gmail.com>
-
 Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
-
-TEST SET:
-    matlab ./links.m test test/allpages.txt
-
-REAL SET:
-    matlab ./links.m www.cs.sunysb.edu www.cs.sunysb.edu/allpages.txt
